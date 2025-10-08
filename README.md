@@ -1,4 +1,4 @@
-# 🛵 Projet Simulation UberEats : Comparaison Redis vs MongoDB
+# Projet Simulation UberEats : Comparaison Redis vs MongoDB
 
 Ce projet simule la logique de gestion des courses (**dispatch**) d'une plateforme de livraison type **UberEats**, à travers deux architectures de bases de données distribuées :  
 - **Redis (Pub/Sub)**  
@@ -6,7 +6,7 @@ Ce projet simule la logique de gestion des courses (**dispatch**) d'une platefor
 
 ---
 
-## 🚀 1. Architecture du Projet
+## 1. Architecture du Projet
 
 Le cœur du projet repose sur le concept **Producteur / Consommateur** et la **compétition en temps réel** entre plusieurs Livreurs.
 
@@ -65,33 +65,34 @@ projet_uber
 │   ├── manager_ubereats.py      # Manager utilisant Redis
 │   └── livreur_ubereats.py      # Livreur utilisant Redis
 └── denormalisation.py           # Script initial de préparation des données
+```
+## 3. Structure des Dossiers
 
-
-MONGODB : 
+##MONGODB : 
 
 ###  PREMIER TERMINAL : 
 
 ```bash
 mongod --port 27017 --dbpath /home/narz/BUT3/Base_De_Donnees/projet/projet-uber/avec-mongo/data/db --replSet rs0
-
+```
 ### DEUXIEME TERMINAL : 
 ```bash
 cd BUT3/Base_De_Donnees/projet/projet-uber/avec-mongo
 source mymongo/bin/activate
 python livreur_mongo.py
-
+``` 
 ### TROISIEME TERMINAL : 
 ```bash 
 cd BUT3/Base_De_Donnees/projet/projet-uber/avec-mongo
 source mymongo/bin/activate
 python manager_mongo.py
-
+``` 
 ###  TERMINAL : 
 ```bash
 mongosh
 use uber_mongo
 db.annonces.find().pretty()
-
+``` 
 
 ### REDIS :
 
@@ -100,7 +101,7 @@ db.annonces.find().pretty()
 ```bash
 cd redis/redis-stable/src
 ./redis-server
-
+``` 
 ### CLIENT TERMINAL : 
 
 ```bash
@@ -109,16 +110,15 @@ cd ~/redis/redis-stable/src
 
 --- Apres ---
 
-```bash 
 GET ubereats:course:active
-
+``` 
 ### PREMIER TERMINAL :
 
 ```bash
 cd BUT3/Base_De_Donnees/projet/projet-uber/avec-redis
 source myredis/bin/activate 
 python livreur_redis.py
-
+``` 
 ### DEUXIEME TERMINAL : 
 
 ```bash
@@ -126,5 +126,5 @@ cd BUT3/Base_De_Donnees/projet/projet-uber/avec-redis
 source myredis/bin/activate 
 python manager_redis.py
 
-
+``
 
