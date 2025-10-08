@@ -1,4 +1,4 @@
-# 🛵 Projet Simulation UberEats : Comparaison Redis vs. MongoDB
+#Projet Simulation UberEats : Comparaison Redis vs. MongoDB
 
 Ce projet vise à simuler la logique de gestion des courses (dispatch) d'une plateforme de livraison (type UberEats) en utilisant deux architectures de bases de données distribuées différentes : **Redis (Pub/Sub)** et **MongoDB (Change Streams)**.
 
