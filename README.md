@@ -54,7 +54,7 @@ Avant de lancer le projet, assurez-vous d’avoir :
 ---
 
 ## 3. Structure des Dossiers
-
+```bash
 projet_uber
 ├── avec-mongo/
 │   ├── denormalisation.json     # Données sources
