@@ -1,107 +1,55 @@
-#Projet Simulation UberEats : Comparaison Redis vs. MongoDB
+# 🛵 Projet Simulation UberEats : Comparaison Redis vs MongoDB
 
-Ce projet vise à simuler la logique de gestion des courses (dispatch) d'une plateforme de livraison (type UberEats) en utilisant deux architectures de bases de données distribuées différentes : **Redis (Pub/Sub)** et **MongoDB (Change Streams)**.
+Ce projet simule la logique de gestion des courses (**dispatch**) d'une plateforme de livraison type **UberEats**, à travers deux architectures de bases de données distribuées :  
+- **Redis (Pub/Sub)**  
+- **MongoDB (Change Streams)**  
 
 ---
 
-## 1. Architecture du Projet
+## 🚀 1. Architecture du Projet
 
-Le cœur du projet repose sur le concept de **Producteur/Consommateur** et de **Compétition en temps réel** entre les Livreurs.
+Le cœur du projet repose sur le concept **Producteur / Consommateur** et la **compétition en temps réel** entre plusieurs Livreurs.
 
 ### 1.1 Composants Communs
 
 | Composant | Rôle | Description |
-| :--- | :--- | :--- |
-| **Manager** | **Producteur** | Simule la plateforme. Publie l'annonce d'une nouvelle course et sélectionne le Livreur le plus rapide. |
-| **Livreur** | **Consommateur/Compétiteur** | Simule l'application du Livreur. Reçoit l'annonce, manifeste son intérêt, et accepte la course s'il est sélectionné. |
-| **`denormalisation.json`** | **Source de Données** | Fichier unique contenant les données de commandes (restaurants, clients, etc.) utilisées pour simuler les annonces. |
+|------------|------|-------------|
+| **Manager** | Producteur | Simule la plateforme : publie les annonces et sélectionne le livreur le plus rapide. |
+| **Livreur** | Consommateur / Compétiteur | Simule une application livreur : reçoit les annonces et tente d'accepter une course. |
+| **`denormalisation.json`** | Source de données | Contient les données de commandes (restaurants, clients, etc.) utilisées pour simuler les annonces. |
 
 ---
 
-### 1.2 Architecture Redis (Messagerie Événementielle)
+### 1.2 Architecture Redis — Messagerie Événementielle
 
-Cette architecture utilise **Redis** comme un courtier de messages et un magasin de données temporaire.
+Cette architecture utilise **Redis** comme un **courtier de messages** et un **stockage temporaire**.
 
-* **Communication :** Utilisation du modèle **Pub/Sub** pour la diffusion instantanée des annonces aux Livreurs.
-* **Sélection :** Le Manager attend pendant un temps défini (5 secondes) que les Livreurs enregistrent leur intérêt via la commande `HSET`. La sélection est basée sur le **timestamp le plus précoce**.
-* **État :** Stockage de l'état temporaire (`ubereats:course:active`) et des intérêts (`ubereats:interet:Oxxxx`) via des commandes Redis classiques.
-
----
-
-### 1.3 Architecture MongoDB (Flux de Changement Persistant)
-
-Cette architecture utilise **MongoDB** (lancé en Replica Set) comme base de données principale et exploite ses **Change Streams** pour la communication en temps réel.
-
-* **Communication :** Le Manager insère un document. Les Livreurs surveillent la collection (`annonces`) via un **Change Stream** et reçoivent l'événement d'insertion en temps réel.
-* **Sélection :** La sélection est gérée par une **mise à jour atomique conditionnelle** (`$set` avec une condition sur le statut). Le premier Livreur à réussir à changer le statut du document de `ANNONCE_PUBLIEE` à `LIVREUR_SELECTIONNE` gagne.
-* **État :** L'état de la course est persistant et contenu intégralement dans un **unique document JSON** dans la collection `annonces`.
+- **Communication :** via le modèle **Pub/Sub** (diffusion instantanée des annonces).
+- **Sélection :** le Manager attend 5 secondes pour collecter les intérêts via `HSET`, puis choisit le **timestamp le plus précoce**.
+- **État :** stocké dans les clés :
+  - `ubereats:course:active` → course en cours
+  - `ubereats:interet:<order_id>` → intérêts reçus
 
 ---
 
-## 2. Prérequis Techniques
+### 1.3 Architecture MongoDB — Flux de Changement Persistant
 
-Pour exécuter ce projet, vous devez disposer des éléments suivants :
+Cette architecture repose sur un **replica set MongoDB** et exploite les **Change Streams** pour détecter les insertions en temps réel.
 
-* **Python 3.x** (avec des environnements virtuels `myredis` et `mymongo`)
-* **Redis Server** (version 5.0 ou supérieure recommandée)
-* **MongoDB Server** (version 4.0 ou supérieure, **doit être lancé en Replica Set**).
-* **Librairies Python :** `redis`, `pymongo`, `dnspython` (à installer dans les environnements virtuels respectifs).
-
----
-
-## 3. Structure des Dossiers
-
-Voici le contenu intégral de votre fichier README.md, incluant l'architecture, les prérequis, la structure des dossiers, et les instructions de lancement détaillées, le tout formaté en Markdown.
-Markdown
-
-# 🛵 Projet Simulation UberEats : Comparaison Redis vs. MongoDB
-
-Ce projet vise à simuler la logique de gestion des courses (dispatch) d'une plateforme de livraison (type UberEats) en utilisant deux architectures de bases de données distribuées différentes : **Redis (Pub/Sub)** et **MongoDB (Change Streams)**.
+- **Communication :** le Manager insère un document dans `annonces`. Les Livreurs écoutent les changements.
+- **Sélection :** mise à jour atomique conditionnelle (`$set` sur `status`).
+  - Le premier Livreur à changer `ANNONCE_PUBLIEE → LIVREUR_SELECTIONNE` gagne.
+- **État :** chaque annonce est un document complet et persistant dans MongoDB.
 
 ---
 
-## 1. Architecture du Projet
+## ⚙️ 2. Prérequis Techniques
 
-Le cœur du projet repose sur le concept de **Producteur/Consommateur** et de **Compétition en temps réel** entre les Livreurs.
+Avant de lancer le projet, assurez-vous d’avoir :
 
-### 1.1 Composants Communs
-
-| Composant | Rôle | Description |
-| :--- | :--- | :--- |
-| **Manager** | **Producteur** | Simule la plateforme. Publie l'annonce d'une nouvelle course et sélectionne le Livreur le plus rapide. |
-| **Livreur** | **Consommateur/Compétiteur** | Simule l'application du Livreur. Reçoit l'annonce, manifeste son intérêt, et accepte la course s'il est sélectionné. |
-| **`denormalisation.json`** | **Source de Données** | Fichier unique contenant les données de commandes (restaurants, clients, etc.) utilisées pour simuler les annonces. |
-
----
-
-### 1.2 Architecture Redis (Messagerie Événementielle)
-
-Cette architecture utilise **Redis** comme un courtier de messages et un magasin de données temporaire.
-
-* **Communication :** Utilisation du modèle **Pub/Sub** pour la diffusion instantanée des annonces aux Livreurs.
-* **Sélection :** Le Manager attend pendant un temps défini (5 secondes) que les Livreurs enregistrent leur intérêt via la commande `HSET`. La sélection est basée sur le **timestamp le plus précoce**.
-* **État :** Stockage de l'état temporaire (`ubereats:course:active`) et des intérêts (`ubereats:interet:Oxxxx`) via des commandes Redis classiques.
-
----
-
-### 1.3 Architecture MongoDB (Flux de Changement Persistant)
-
-Cette architecture utilise **MongoDB** (lancé en Replica Set) comme base de données principale et exploite ses **Change Streams** pour la communication en temps réel.
-
-* **Communication :** Le Manager insère un document. Les Livreurs surveillent la collection (`annonces`) via un **Change Stream** et reçoivent l'événement d'insertion en temps réel.
-* **Sélection :** La sélection est gérée par une **mise à jour atomique conditionnelle** (`$set` avec une condition sur le statut). Le premier Livreur à réussir à changer le statut du document de `ANNONCE_PUBLIEE` à `LIVREUR_SELECTIONNE` gagne.
-* **État :** L'état de la course est persistant et contenu intégralement dans un **unique document JSON** dans la collection `annonces`.
-
----
-
-## 2. Prérequis Techniques
-
-Pour exécuter ce projet, vous devez disposer des éléments suivants :
-
-* **Python 3.x** (avec des environnements virtuels `myredis` et `mymongo`)
-* **Redis Server** (version 5.0 ou supérieure recommandée)
-* **MongoDB Server** (version 4.0 ou supérieure, **doit être lancé en Replica Set**).
-* **Librairies Python :** `redis`, `pymongo`, `dnspython` (à installer dans les environnements virtuels respectifs).
+- **Python 3.x**
+- **Redis Server** ≥ 5.0
+- **MongoDB Server** ≥ 4.0 (
 
 ---
 
